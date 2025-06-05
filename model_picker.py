@@ -142,7 +142,9 @@ class ModelPicker:
                 'ExplVar_mean': np.mean(cv_results['test_ExplainedVariance']),
                 'MaxError_mean': np.mean(cv_results['test_MaxError']),
                 'Time': elapsed_time,
-                'Best_Params': grid.best_params_
+                'Best_Params': grid.best_params_,
+                'Best_Estimator': grid.best_estimator_,
+                'Best_Score': grid.best_score_
             }
             
             print(f"{model_name} completed in {elapsed_time:.2f}s (Best R2: {results['R2_mean']:.3f})")
@@ -187,7 +189,7 @@ class ModelPicker:
             
         # Create results dataframe
         self.results_df = pd.DataFrame(self.results).sort_values('R2_mean', ascending=False)
-        self.best_model = self.models[[m[0] for m in self.models].index(self.results_df.iloc[0]['Model'])][1]
+        self.best_model = self.results_df.iloc[0]['Best_Estimator']
         
         print("\n=== Model Comparison Results ===")
         print(self.results_df.to_string(index=False))
