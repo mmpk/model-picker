@@ -34,7 +34,8 @@ class ModelPicker:
         self.results_df = pd.DataFrame()
         self.best_model = None
         self.cv_results = []
-
+        self.cv_results_all = []
+      
     def _initialize_models(self) -> None:
         """Initialize models with their default parameters and search grids."""
         self.models = [
@@ -129,7 +130,7 @@ class ModelPicker:
                 n_jobs=self.n_jobs,
                 return_train_score=False
             )
-            
+            self.cv_results_all.append(cv_results)
             elapsed_time = time.time() - start_time
             
             # Store results
@@ -246,23 +247,15 @@ class ModelPicker:
         plt.xlabel('Time (seconds)')
         plt.ylabel('')
         
-        # 4. Metric Distributions
+        # 4. Model Score Distributions
         plt.subplot(2, 2, 4)
-        metrics = ['R2', 'MAE', 'RMSE']
-        for i, metric in enumerate(metrics):
-            plt.scatter(
-                self.results_df[f'{metric}_mean'], 
-                self.results_df.index,
-                label=metric,
-                s=100,
-                alpha=0.7
-            )
-        plt.title('Metric Trade-offs', pad=20)
-        plt.xlabel('Metric Value')
-        plt.yticks(range(len(self.results_df)), self.results_df['Model'])
-        plt.grid(True, linestyle='--', alpha=0.6)
-        plt.legend()
-        
+        score_data = pd.DataFrame({
+            'Model': np.repeat(self.results_df['Model'], 10),
+            'R2': np.concatenate([res['test_R2'] for res in self.cv_results_all])
+        })
+        sns.boxplot(data=score_data, y='Model', x='R2')
+        plt.title('R2 Score Distributions Across Folds')
+
         plt.tight_layout()
         plt.show()
 
